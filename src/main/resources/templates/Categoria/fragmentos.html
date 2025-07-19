@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+
+<html xmlns ="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaaf.org"
+      xmlns:sec="http://www.thymeleaaf.org/thymeleaf-extras-springsecurity6">
+
+
+    <head th:replace="~{layout/plantilla :: head}"/>
+
+    <body>
+
+        <!-- fragmento 3 para el listado de categorias -->
+        <section th:fragment="listado" class="p-3">
+            <div class="row p-3">
+                <div class="col-md-9">
+                    <div class="card p-2">
+                        <div class="card-header">
+                            <h4>[[#{categoria.listado}]]</h4>
+                        </div>
+                        <div class="card-body">
+                            <div th:if="${categorias != null and !categorias.empty}">
+                                <table class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>[[#{categoria.descripcion}]]</th>
+                                            <th>[[#{categoria.imagen}]]</th>
+                                            <th>[[#{categoria.activo}]]</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="c : ${categorias}">
+                                            <td>[[${c.idCategoria}]]</td>
+                                            <td>[[${c.descripcion}]]</td>
+                                            <td><img th:src="@{${c.rutaImagen}}" alt="noData" height="75"/></td>
+                                            <td th:text="${c.activo} ? 'Activa':'Inactiva'"></td>
+                                            <td>
+                                                <a class="btn btn-danger" th:href="@{/categoria/eliminar/}+${c.idCategoria}">
+                                                    <i class="fas fa-trash"></i> [[#{accion.eliminar}]]
+                                                </a>
+                                                <a class="btn btn-success" th:href="@{/categoria/modificar/}+${c.idCategoria}">
+                                                    <i class="fas fa-pencil"></i> [[#{accion.actualizar}]]
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="text-center p-2" th:if="${categorias == null or categorias.empty}">
+                                <span>[[#{lista.vacia}]]</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center bg-success text-white mb-3">
+                        <div class="card-body">
+                            <h3>[[#{categoria.total}]]</h3>
+                            <h4 class="fs-2"><i class="fas fa-layer-group"></i> [[${totalCategorias}]]</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </body>
+</html>
+
