@@ -9,14 +9,11 @@
 
     <body>
         <header th:replace="~{layout/plantilla :: header}"/>     
-
-        <section th:replace="~{categoria/fragmentos :: editarCategoria}"/>
+        <section th:replace="~{producto/fragmentos :: agregarProducto}"/>
+        <section th:replace="~{producto/fragmentos :: listado}"/>
+        <section th:replace="~{producto/fragmentos :: confirmarEliminar}"/> 
         <section th:replace="~{layout/plantilla :: mostrarToast}"/>
-
-
         <footer th:replace="~{layout/plantilla :: footer}"/>
-
-
     </body>
 </html>
 

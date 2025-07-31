@@ -1,0 +1,301 @@
+Recorte 000 mensajes.properties
+===========
+
+accion.confirmar=Confirma eliminación
+accion.confirmar.texto1=¿Realmente desea eliminar 
+accion.confirmar.texto2=Esta acción no se puede reversar...
+categoria.error01=La categoria no existe.
+categoria.error02=No se puede eliminar la categoría porque tiene productos asociados.
+categoria.error03=Se produjo un error inesperado al intentar eliminar la categoria.
+mensaje.eliminado=El registro ha sido eliminado permanentemente.
+mensaje.actualizado=Se realizó la actualización.
+error=¡Error!
+atencion=Atención
+
+
+Recorte 001 pom.xml
+===========
+
+<dependency>
+   <groupId>com.google.firebase</groupId>
+   <artifactId>firebase-admin</artifactId>
+   <version>9.5.0</version>
+</dependency>   
+
+
+Recorte 002 FirebaseStorageService.java
+===========
+
+package com.tienda.service;
+
+import com.google.auth.Credentials;
+import com.google.auth.ServiceAccountSigner;
+import com.google.auth.oauth2.GoogleCredentials;
+import com.google.cloud.storage.*;
+import com.google.cloud.storage.Storage.SignUrlOption;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.concurrent.TimeUnit;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+@Service
+public class FirebaseStorageService {
+
+    //El BuketName es el <id_del_proyecto> + ".firebasestorage.app"
+    final String BucketName = "techshop-ca353.firebasestorage.app";
+    
+    //Esta es la ruta básica de este proyecto Techshop
+    final String rutaSuperiorStorage = "techshop";
+
+    //Ubicación donde se encuentra el archivo de configuración Json
+    final String rutaJsonFile = "firebase";
+
+    //El nombre del archivo Json
+    final String archivoJsonFile = "techshop-ca353-firebase-adminsdk-fbsvc-2c44cb613f"+".json";
+
+    public String cargaImagen(MultipartFile archivoLocalCliente, String carpeta, Long id) {
+        try {
+            // El nombre original del archivo local del cliene
+            String extension = archivoLocalCliente.getOriginalFilename();
+
+            // Se genera el nombre según el código del articulo. 
+            String fileName = "img" + sacaNumero(id) + extension;
+
+            // Se convierte/sube el archivo a un archivo temporal
+            File file = this.convertToFile(archivoLocalCliente);
+
+            // se copia a Firestore y se obtiene el url válido de la imagen (por 10 años) 
+            String URL = this.uploadFile(file, carpeta, fileName);
+
+            // Se elimina el archivo temporal cargado desde el cliente
+            file.delete();
+
+            return URL;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private String uploadFile(File file, String carpeta, String fileName) throws IOException {
+        //Se define el lugar y acceso al archivo .jasper
+        ClassPathResource json = new ClassPathResource(rutaJsonFile + File.separator + archivoJsonFile);
+        BlobId blobId = BlobId.of(BucketName, rutaSuperiorStorage + "/" + carpeta + "/" + fileName);
+        BlobInfo blobInfo = BlobInfo.newBuilder(blobId).setContentType("media").build();
+
+        Credentials credentials = GoogleCredentials.fromStream(json.getInputStream());
+        Storage storage = StorageOptions.newBuilder().setCredentials(credentials).build().getService();
+        storage.create(blobInfo, Files.readAllBytes(file.toPath()));
+        String url = storage.signUrl(blobInfo, 3650, TimeUnit.DAYS, SignUrlOption.signWith((ServiceAccountSigner) credentials)).toString();
+        return url;
+    }
+
+    //Método utilitario que convierte el archivo desde el equipo local del usuario a un archivo temporal en el servidor
+    private File convertToFile(MultipartFile archivoLocalCliente) throws IOException {
+        File tempFile = File.createTempFile("img", null);
+        try (
+                FileOutputStream fos = new FileOutputStream(tempFile)) {
+            fos.write(archivoLocalCliente.getBytes());
+        }
+
+        return tempFile;
+    }
+
+    //Método utilitario para obtener un string con ceros....
+    private String sacaNumero(long id) {
+        return String.format("%019d", id);
+    }
+    
+}
+
+
+
+Recorte003
+==========
+
+   @Autowired
+    private FirebaseStorageService firebaseStorageService;
+
+    @PostMapping("/guardar")
+    public String guardar(Categoria categoria,
+            @RequestParam("imagenFile") MultipartFile imagenFile,     
+        RedirectAttributes redirectAttrs) {
+
+        if (!imagenFile.isEmpty()) {
+            categoriaService.save(categoria);
+            String rutaImagen = firebaseStorageService.cargaImagen(
+                    imagenFile,
+                    "categoria",
+                    categoria.getIdCategoria());
+            categoria.setRutaImagen(rutaImagen);
+        }
+
+        categoriaService.save(categoria);
+        redirectAttrs.addFlashAttribute("todoOk", messageSource.getMessage("categoria.actualizado", null, Locale.getDefault()));
+
+        return "redirect:/categoria/listado";
+    }
+
+
+Recorte004 fragmentos.html (botones del listado)
+==========
+
+                                                <div class="d-flex align-items-start">                                                    
+                                                    <button type="button"
+                                                            class="btn btn-danger"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#confirmModal"
+                                                            th:data-bs-id="${c.idCategoria}"
+                                                            th:data-bs-descripcion="${c.descripcion}">
+                                                        <i class="fa-solid fa-trash"></i> [[#{accion.eliminar}]]
+                                                    </button>
+                                                    <form th:action="@{/categoria/modificar}"
+                                                          th:object="${categoria}"
+                                                          method="post">
+                                                        <input type="hidden" name="idCategoria" th:value="${c.idCategoria}"/>
+                                                        <button type="submit"
+                                                                class="btn btn-success">
+                                                            <i class="fa-solid fa-pencil"></i> [[#{accion.actualizar}]]
+                                                        </button>
+                                                    </form>
+                                                </div>
+
+
+Recorte005 rutinas.js (pasa parámetros al modal)
+==========
+
+//Para insertar información en el modal según el registro...
+document.addEventListener('DOMContentLoaded', function () {
+    const confirmModal = document.getElementById('confirmModal');
+    confirmModal.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        document.getElementById('modalId').value = button.getAttribute('data-bs-id');
+        document.getElementById('modalDescripcion').textContent = button.getAttribute('data-bs-descripcion');
+    });
+});
+
+
+Recorte006 fragmentos.html (verificación)
+==========
+
+ <section th:fragment="confirmarEliminar">
+            <div class="modal fade" 
+                 id="confirmModal" 
+                 tabindex="-1" 
+                 aria-labelledby="modalLabel" 
+                 aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered custom-modal-animation">
+                    <div class="modal-content animate-slide-up">
+                        <form th:action="@{/categoria/eliminar}" th:object="${categoria}" method="get">
+                            <input type="hidden" name="idCategoria" id="modalId"/>
+                            <div class="modal-header bg-warning text-white">
+                                <h5 class="modal-title" id="modalLabel">
+                                    <i class="fa-solid fa-circle-radiation"></i> [[#{accion.confirmar}]]</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p>[[#{accion.confirmar.texto1}]] <span id="modalDescripcion"></span>?</p>
+                                <h6>[[#{accion.confirmar.texto2}]]</h6>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-danger"><i class="fa-solid fa-trash"></i> [[#{accion.eliminar}]]</button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fa-solid fa-xmark"></i> [[#{accion.cerrar}]]</button>                                
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+Recorte006 layout.html (Toast)
+==========
+
+<section th:fragment="mostrarToast">
+            <div aria-live="polite" aria-atomic="true" class="position-fixed top-50 start-50 translate-middle" style="z-index: 1080;">                
+                <div th:if="${error}" class="toast show"
+                     role="alert"
+                     aria-live="assertive"                     
+                     aria-atomic="true"
+                     data-bs-autohide="true">
+                    <div class="toast-header text-white bg-danger">
+                        <i class="fa-solid fa-bomb"></i> <strong clas=me-auto> [[#{error}]]</strong>
+                    </div>
+                    <div class="toast-body">
+                        <p>[[${error}]]</p>
+                        <div class="mt-2 pt-2 border-top text-center">
+                            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="toast">[[#{accion.cerrar}]]</button>
+                        </div>
+                    </div>
+                </div>
+                <div th:if="${todoOk}" class="toast show"
+                     role="status"
+                     aria-live="polite"
+                     aria-atomic="true"
+                     data-bs-autohide="true">
+                    <div class="toast-header text-white bg-success">
+                        <i class="fa-solid fa-square-check"></i> <strong clas=me-auto> [[#{atencion}]]</strong>
+                    </div>
+                    <div class="toast-body">
+                        <p>[[${todoOk}]]</p>
+                        <div class="mt-2 pt-2 border-top text-center">
+                            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="toast">[[#{accion.cerrar}]]</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+Recorte007 rutinas.js (limpiar Toas)
+==========
+
+<script>
+    setTimeout(() => {
+        document.querySelectorAll('.toast').forEach(t => t.classList.remove('show'));
+    }, 3000);
+</script>
+
+
+Recorte008 CategoriaController (método eliminar)
+==========
+
+    @Autowired
+    private MessageSource messageSource;
+
+    @GetMapping("/eliminar")
+    public String eliminar(Categoria categoria,
+            RedirectAttributes redirectAttrs) {
+        categoria = categoriaService.getCategoria(categoria);
+
+        if (categoria == null) {
+            redirectAttrs.addFlashAttribute("error", messageSource.getMessage("categoria.error01",null, Locale.getDefault()));
+        } else if (false) {
+            redirectAttrs.addFlashAttribute("error", messageSource.getMessage("categoria.error02",null, Locale.getDefault()));
+        } else if (categoriaService.delete(categoria)) {
+            redirectAttrs.addFlashAttribute("todoOk", messageSource.getMessage("categoria.eliminado",null, Locale.getDefault()));
+        } else {
+            redirectAttrs.addFlashAttribute("error", messageSource.getMessage("categoria.error03",null, Locale.getDefault()));
+        }
+        return "redirect:/categoria/listado";
+
+        /* va en lugar del false... categoria.getProductos() != null && !categoria.getProductos().isEmpty()*/
+    }
+
+
+Recorte009 listado.html (ajustes)
+==========
+
+<body>
+        <header th:replace="~{layout/plantilla :: header}"/>        
+        
+        <section th:replace="~{categoria/fragmentos :: agregarCategoria}"/>        
+        <section th:replace="~{categoria/fragmentos :: listado}"/>
+        <section th:replace="~{categoria/fragmentos :: confirmarEliminar}"/>
+        <section th:replace="~{layout/plantilla :: mostrarToast}"/>
+        
+        <footer th:replace="~{layout/plantilla :: footer}"/>
+    </body>

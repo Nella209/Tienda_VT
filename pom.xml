@@ -63,7 +63,7 @@
         <dependency>
             <groupId>org.webjars</groupId>
             <artifactId>bootstrap</artifactId>
-            <version>5.3.5</version>
+            <version>5.3.7</version>
         </dependency>
         <dependency>
             <groupId>org.webjars</groupId>
@@ -102,6 +102,12 @@
             <scope>provided</scope>
         </dependency>
 
+        <dependency>
+            <groupId>com.google.firebase</groupId>
+            <artifactId>firebase-admin</artifactId>
+            <version>9.5.0</version>
+        </dependency>   
+
     </dependencies>
 
     <build>
@@ -109,7 +115,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.13.0</version>
+                <version>3.14.0</version>
                 <configuration>
                     <compilerArgs>
                         <arg>-Xlint</arg>
