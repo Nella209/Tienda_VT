@@ -4,10 +4,85 @@
       xmlns:th="http://www.thymeleaaf.org"
       xmlns:sec="http://www.thymeleaaf.org/thymeleaf-extras-springsecurity6">
 
-
+    <!-- Encapsular quiere decir tener una etiqueta de apertura y una de cierre, osea
+    envolver un codigo dentro de una etiqueta-->
     <head th:replace="~{layout/plantilla :: head}"/>
 
     <body>
+
+        <!-- fragmento 1 para Agregar categoria en ventana modal -->
+        <section th:fragment="agregarCategoria">
+            <!-- Esta parte la agarré de bootstrap -->
+            <!-- Button trigger modal -->
+            <div class ='row py-4 mb-2 bg-ligth'>
+                <!-- row = fila / py = arriba / mb= abajo / bg = background -->
+                <div class ='col-md-1' ></div>
+                <div class ='col-md-3' >
+
+                    <!-- Esta parte de arriba es para ver
+                    cuantas columnas vacias hay al rededor-->
+
+                    <!--Color - Tipo modal - -->
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#agregarCategoriaModal">
+                        <!--Color - Tipo modal - -->
+
+                        <i class="fa-solid fa-plus"></i> [[#{categoria.agregar}]] <!-- Esto viene del archivo de mensajes -->
+                    </button>
+                </div>
+            </div>
+
+            <!-- Para cambiar colores se puede ver en color and background -->
+
+            <!-- Modal -->
+            <div class="modal fade" id="agregarCategoriaModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header bg-info text-white">
+                            <h1 class="modal-title fs-5" id="exampleModalLabel">
+                                <i class="fa-solid fa-layer-group"></i>  [[#{categoria.agregar}]]</h1>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form th:action ='@{/categoria/guardar}' 
+                              th:object ='${categoria}'
+                              class ='was-validated'
+                              enctype ="multipart/form-data"
+                              method="post">
+                            <div class="modal-body">
+
+                                <div class="mb-3">
+                                    <label>[[#{categoria.descripcion}]]</label>
+                                    <input type="text" name="descripcion"
+                                           class="form-control" required="true"/>
+                                </div>
+                                <div class="mb-3">
+                                    <label>[[#{categoria.activo}]]</label>
+                                    <input type="checkbox" name="activo"
+                                           class="form-check-input"/>
+                                </div>
+                                <div class="mb-3">
+                                    <label>[[#{categoria.imagen}]]</label>
+                                    <input type="file" name="imagenFile"
+                                           onchange="mostrarImagen(this);"
+                                           class="form-control"/>
+                                    <img id="blah" src="#" alt="imagen de categoria" height="200"/>
+                                </div>
+
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                    <i class="fa-solid fa-xmark"></i> [[#{accion.cerrar}]]
+                                    <!-- esto de arriba son los iconos -->
+
+                                </button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fa-solid fa-floppy-disk"></i> [[#{accion.guardar}]]
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
 
         <!-- fragmento 2 para el listado de categorias -->
         <section th:fragment="listado" class="p-3">
@@ -63,6 +138,77 @@
                 </div>
             </div>
         </section>
+
+        <!-- 3 Fragmento que se utiliza en la página modifca.html -->
+        <section th:fragment="editarCategoria">
+            <div class="row">
+                <div class="col-md-2"></div>
+                <div class="col-md-8">
+                    <form method="POST"
+                          th:action="@{/categoria/guardar}" 
+                          th:object="${categoria}"
+                          class="was-validated"                          
+                          enctype="multipart/form-data">
+                        <input type="hidden" name="idCategoria" th:field="*{idCategoria}"/>
+                        <input type="hidden" name="rutaImagen" th:field="*{rutaImagen}"/>
+                        <div class="container py-4 mb-4 bg-light">
+                            <div class="row">
+                                <div class="col-md-4 d-grid">
+                                    <a th:href="@{/categoria/listado}" class="btn btn-primary">
+                                        <i class="fas fa-arrow-left"></i> [[#{accion.regresar}]]
+                                    </a>
+                                </div>
+                                <div class="col-md-4 d-grid">                                
+                                    <a th:href="@{/categoria/eliminar/}+${categoria.idCategoria}"
+                                       class="btn btn-danger">
+                                        <i class="fas fa-trash"></i> [[#{accion.eliminar}]]
+                                    </a>
+                                </div>
+                                <div class="col-md-4 d-grid">
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fas fa-check"></i> [[#{accion.guardar}]]
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id=details>
+                            <div class="container">
+                                <div class="row">
+                                    <div class="col">
+                                        <div class="card">
+                                            <div class="card-header">
+                                                <h4>[[#{accion.actualizar}]]</h4>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="mb-3">
+                                                    <label for="descripcion">[[#{categoria.descripcion}]]</label>
+                                                    <input type="text" class="form-control" 
+                                                           name="descripcion" th:field="*{descripcion}"
+                                                           required="true">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="activo">[[#{categoria.activo}]]</label>
+                                                    <input class="form-check-input" 
+                                                           type="checkbox" 
+                                                           name="activo" 
+                                                           id="activo"
+                                                           th:field="*{activo}">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="imagen">[[#{categoria.imagen}]]</label>
+                                                    <input class="form-control" type="file" name="imagenFile"
+                                                           onchange="mostrarImagen(this);" />
+                                                    <img id="blah" th:src="@{${categoria.rutaImagen}}" alt="your image" height="200"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                    </form>
+                </div>
+            </div>
+        </section>  
 
     </body>
 </html>
