@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+
+<html xmlns ="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaaf.org"
+      xmlns:sec="http://www.thymeleaaf.org/thymeleaf-extras-springsecurity6">
+
+
+    <head th:replace="~{layout/plantilla :: head}"/>
+
+    <body>
+        <header th:replace="~{layout/plantilla :: header}"/>     
+        <section th:replace="~{pruebas/fragmentos :: tabsCategorias}"/>
+        <section th:replace="~{pruebas/fragmentos :: tarjetas}"/>
+        <footer th:replace="~{layout/plantilla :: footer}"/>
+    </body>
+</html>
+

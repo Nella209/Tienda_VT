@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+
+<html xmlns ="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaaf.org"
+      xmlns:sec="http://www.thymeleaaf.org/thymeleaf-extras-springsecurity6">
+
+    <!-- Encapsular quiere decir tener una etiqueta de apertura y una de cierre, osea
+    envolver un codigo dentro de una etiqueta-->
+    <head th:replace="~{layout/plantilla :: head}"/>
+
+    <body>
+
+        <section th:fragment="tabsCategorias">
+
+
+            <ul class="nav nav-underline px-5">
+
+                <li class="nav-item">
+                    <a class="nav-link" href="#/pruebas/listado">[[#{pruebas.todas}]]</a>
+                </li>
+                <li th:each="c : ${categorias}" 
+                    class="nav-item">
+                    <a class="nav-link" 
+                       th:href="@{/pruebas/listado/}+${c.idCategoria}">
+                        [[${c.descripcion}]]</a>
+                </li>
+
+            </ul>
+
+
+        </section>
+
+        <section th:fragment="tarjetas"> 
+
+            <div class="row row-cols-4 m-2">
+                <div th:each="p : ${productos}"
+                     class="card p-2">
+                    <figure>
+                        
+                        <div class="d-flex justify-content-center"> 
+                        <img th:src="${p.rutaImagen}" height="200" alt="..."/>
+                        </div>
+                        <figcaption class="d-flex justify-content-evenly">
+                         <span>₡[[${p.precio}]]</span>    
+                         <span>₡([[${p.existencias}]])</span> 
+                         <form>
+                             <input type="hidden" 
+                                    th:value="${p.idProducto}" 
+                                    name="idProducto"/>                          
+                             <input type="hidden" 
+                                    th:value="${p.existencias}" 
+                                    name="existencias"/>                          
+                             <button class="btn btn-light"
+                                    onclick="addCart(this.form)" >
+                                 <i class="fas fa-cart-arrow-down"></i>
+                             </button>
+                         </form>
+                        </figcaption>
+                    </figure>
+                    <div class="card-header p-3">
+                        <h5 class="text-center">[[${p.descripcion}]]</h5>                        
+                    </div>
+                    <div class="card-body">
+                        <p>[[${p.detalle}]]</p>                    
+                </div>
+            </div> 
+        </section>
+    </body>
+</html>
+
