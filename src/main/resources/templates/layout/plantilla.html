@@ -97,6 +97,35 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
                         </ul>
                         <div id="resultBlock">
                         </div>
+
+                        <ul class="navbar-nav"
+                            sec:authorize='!isAuthenticated()'>
+                            <li class='nav-item'>
+                                <a class='nav-menu-link nav-link'
+                                   th:href='@{/login}'>
+                                   Login <i class="fas fa-right-to-bracket"></i>
+                                </a>
+                            </li>
+                        </ul>
+                        <ul class="navbar-nav"
+                            sec:authorize='isAuthenticated()'>
+                            <li class='nav-item my-auto'>
+                                <img th:src="@{${session.imagenUsuario}}"                                      
+                                     height="40" 
+                                     class="rounded-circle"
+                                     alt=""/>
+                                <span sec:authentication='name'>Jhon</span>
+                            </li>
+                            <li class='nav-item my-auto'>
+                                <form method="post" 
+                                      th:action='@{/logout}'>
+                                    <button class='btn btn-ligth'>
+                                        <i class="fas fa-right-from-bracket"></i> 
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+
                     </div>
                 </div>
             </nav>
