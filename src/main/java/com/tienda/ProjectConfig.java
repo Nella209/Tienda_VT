@@ -68,7 +68,7 @@ public class ProjectConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registro) {
         registro.addInterceptor(localeChangeInterceptor());
     }
-// a este tipo de datos se le dicen datos quemados
+
 
     @Autowired
     private RutaPermitService rutaPermitService;
@@ -110,7 +110,7 @@ public class ProjectConfig implements WebMvcConfigurer {
     }
 
 }
-
+// a este tipo de datos se le dicen datos quemados
 /* El siguiente método se utiliza para completar la clase no es 
     realmente funcional, la próxima semana se reemplaza con usuarios de BD 
     @Bean
